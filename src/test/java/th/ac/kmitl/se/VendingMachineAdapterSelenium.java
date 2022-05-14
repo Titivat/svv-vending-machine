@@ -20,7 +20,7 @@ public class VendingMachineAdapterSelenium extends ExecutionContext {
     WebDriver driver;
     static final float PRICE_TUM_THAI = 100.0f;
     static final float PRICE_TUM_POO = 120.0f;
-
+    int retryCount = 0;
     @BeforeExecution
     public void setUp() {
         WebDriverManager.chromedriver().setup();
@@ -184,16 +184,30 @@ public class VendingMachineAdapterSelenium extends ExecutionContext {
     @Vertex()
     public void ERROR_PAY() {
         System.out.println("Vertex ERROR_PAY");
+        if( retryCount >= 3){
+            this.payFail();
+            retryCount = 0;
+        }else{
+            retryCount += 1;
+        }
     }
 
     @Edge()
     public void payRetry() {
         System.out.println("Edge payRetry");
+        this.pay();
     }
+
+    @Vertex()
+    public void payFail() {
+        driver.navigate().to("https://fekmitl.pythonanywhere.com/kratai-bin");
+    }
+
 
     @Vertex()
     public void COLLECTING() {
         System.out.println("Vertex COLLECTING");
+        retryCount = 0;
         new WebDriverWait(driver, Duration.ofSeconds(5))
                 .until(ExpectedConditions.elementToBeClickable(By.tagName("img")));
 
